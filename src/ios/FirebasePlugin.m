@@ -50,7 +50,17 @@ static FirebasePlugin *firebasePlugin;
 //    NSLog(@"[firebasePlugin 🔥] registering for remote");
 
     // TODO: give the user the choice to use FCM as token
-    [[UIApplication sharedApplication] registerForRemoteNotifications];
+    if ([[UIApplication sharedApplication] respondsToSelector:@selector(registerForRemoteNotifications)])
+    {
+        UIUserNotificationType types = UIUserNotificationTypeBadge | UIUserNotificationTypeSound | UIUserNotificationTypeAlert;
+        UIUserNotificationSettings *mySettings = [UIUserNotificationSettings settingsForTypes:types categories:nil];
+
+        [[UIApplication sharedApplication] registerUserNotificationSettings:mySettings];
+        [[UIApplication sharedApplication] registerForRemoteNotifications];
+    } else {
+        UIRemoteNotificationType types = UIUserNotificationTypeBadge | UIUserNotificationTypeSound | UIUserNotificationTypeAlert;
+        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:types];
+    }
     
     // save command
     if (self.getTokenCDVCommand == nil) {
@@ -239,18 +249,25 @@ CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStat
 }
 
 - (void)unregister:(CDVInvokedUrlCommand *)command {
-    [[FIRInstanceID instanceID] deleteIDWithHandler:^void(NSError *_Nullable error){
-        if (error) {
-            NSLog(@"Unable to delete instance");
-        } else {            
-            NSString* currentToken = [[FIRInstanceID instanceID] token];
-            if (currentToken != nil) {
-                [self sendToken:currentToken];
-            }
-            CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        }
-    }];
+
+    // TODO: give user the choice between APNS and Firebase
+    [[UIApplication sharedApplication] unregisterForRemoteNotifications];
+
+    CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"unregistered"];
+    [self.commandDelegate sendPluginResult:commandResult callbackId:command.callbackId];
+
+    // [[FIRInstanceID instanceID] deleteIDWithHandler:^void(NSError *_Nullable error){
+    //     if (error) {
+    //         NSLog(@"Unable to delete instance");
+    //     } else {            
+    //         NSString* currentToken = [[FIRInstanceID instanceID] token];
+    //         if (currentToken != nil) {
+    //             [self sendToken:currentToken];
+    //         }
+    //         CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    //         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    //     }
+    // }];
 }
 
 - (void)onNotificationOpen:(CDVInvokedUrlCommand *)command {
