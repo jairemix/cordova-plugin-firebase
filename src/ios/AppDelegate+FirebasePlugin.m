@@ -48,6 +48,17 @@
     return YES;
 }
 
+// TODO: investigate swizzling
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+    // NSLog(@"[firebasePlugin 🔥] did register for remote notifications, %@", deviceToken);
+    [FirebasePlugin.firebasePlugin didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
+}
+
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
+    // NSLog(@"[firebasePlugin 🔥] did fail to register for remote notifications %@", error);
+    [FirebasePlugin.firebasePlugin didFailToRegisterForRemoteNotificationsWithError:error];
+}
+
 - (void)applicationDidBecomeActive:(UIApplication *)application {
     [self connectToFcm];
     self.applicationInBackground = @(NO);

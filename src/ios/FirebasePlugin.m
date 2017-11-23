@@ -22,6 +22,8 @@
 @synthesize tokenRefreshCallbackId;
 @synthesize notificationStack;
 
+@synthesize getTokenCDVCommand;
+
 static NSInteger const kNotificationStackSize = 10;
 static FirebasePlugin *firebasePlugin;
 
@@ -45,13 +47,42 @@ static FirebasePlugin *firebasePlugin;
 }
 
 - (void)getToken:(CDVInvokedUrlCommand *)command {
-    CDVPluginResult *pluginResult;
+//    NSLog(@"[firebasePlugin 🔥] registering for remote");
 
-    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:
-                    [[FIRInstanceID instanceID] token]];
+    // TODO: give the user the choice to use FCM as token
+    [[UIApplication sharedApplication] registerForRemoteNotifications];
+    
+    // save command
+    if (self.getTokenCDVCommand == nil) {
+//        NSLog(@"[firebasePlugin 🔥] saving command");
+        self.getTokenCDVCommand = command;
+    }
+}
 
+- (void)didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+    // NSLog(@"[firebasePlugin 🔥] did register for remote notifications, %@", deviceToken);
+    NSString *tokenStr = [[[[deviceToken description] stringByReplacingOccurrencesOfString:@"<"withString:@""]
+                           stringByReplacingOccurrencesOfString:@">" withString:@""]
+                          stringByReplacingOccurrencesOfString: @" " withString: @""];
+//    NSLog(@"[firebasePlugin 🔥] did register for remote notifications, %@", tokenStr);
+    
+    CDVInvokedUrlCommand* command = self.getTokenCDVCommand;
+    self.getTokenCDVCommand = nil;
+
+    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:tokenStr];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
+
+- (void)didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
+//    NSLog(@"[firebasePlugin 🔥] did fail to register for remote notifications %@", error);
+    
+    CDVInvokedUrlCommand* command = self.getTokenCDVCommand;
+    self.getTokenCDVCommand = nil;
+
+    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error description]];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
 - (void)hasPermission:(CDVInvokedUrlCommand *)command
 {
     BOOL enabled = NO;

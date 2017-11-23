@@ -24,8 +24,13 @@
 - (void)fetch:(CDVInvokedUrlCommand*)command;
 - (void)activateFetched:(CDVInvokedUrlCommand*)command;
 - (void)getValue:(CDVInvokedUrlCommand*)command;
+
+- (void)didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken;
+- (void)didFailToRegisterForRemoteNotificationsWithError:(NSError*)error;
+
 @property (nonatomic, copy) NSString *notificationCallbackId;
 @property (nonatomic, copy) NSString *tokenRefreshCallbackId;
 @property (nonatomic, retain) NSMutableArray *notificationStack;
+@property (nonatomic, retain) CDVInvokedUrlCommand* getTokenCDVCommand;
 
 @end
